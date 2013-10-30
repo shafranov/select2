@@ -743,7 +743,9 @@ the specific language governing permissions and limitations under the Apache Lic
             search.on("blur", function () { search.removeClass("select2-focused");});
 
             this.dropdown.on("mouseup", resultsSelector, this.bind(function (e) {
-                if ($(e.target).closest(".select2-result-selectable").length > 0) {
+                if ($(e.target).closest(".select2-expander").length > 0) {
+                    this.changeNodeCollapsedState(e);
+                } else if ($(e.target).closest(".select2-result-label").length > 0) {
                     this.highlightUnderEvent(e);
                     this.selectHighlighted(e);
                 }
@@ -856,7 +858,8 @@ the specific language governing permissions and limitations under the Apache Lic
 
                     populate=function(results, container, depth) {
 
-                        var i, l, result, selectable, disabled, compound, node, label, innerContainer, formatted;
+                        var i, l, result, selectable, disabled, compound, formatted;
+                        var node, nodeLine, expanderContainer, expander, label, innerContainer;
 
                         results = opts.sortResults(results, container, query);
 
@@ -877,7 +880,20 @@ the specific language governing permissions and limitations under the Apache Lic
                             if (compound) { node.addClass("select2-result-with-children"); }
                             node.addClass(self.opts.formatResultCssClass(result));
 
-                            label=$(document.createElement("div"));
+                            nodeLine = $(document.createElement("div"));
+                            node.append(nodeLine);
+                            nodeLine.addClass("select2-node-line");
+
+                            expanderContainer = $(document.createElement("div"));
+                            nodeLine.append(expanderContainer);
+                            expanderContainer.addClass("select2-expander");
+                            expanderContainer.addClass(compound ? "expander-close" : "expander-none");
+
+                            expander = $(document.createElement("div"));
+                            expanderContainer.append(expander);
+
+                            label = $(document.createElement("div"));
+                            nodeLine.append(label);
                             label.addClass("select2-result-label");
 
                             formatted=opts.formatResult(result, label, query, self.opts.escapeMarkup);
@@ -885,11 +901,9 @@ the specific language governing permissions and limitations under the Apache Lic
                                 label.html(formatted);
                             }
 
-                            node.append(label);
-
                             if (compound) {
-
-                                innerContainer=$("<ul></ul>");
+                                innerContainer=$('<ul></ul>');
+                                innerContainer.css('display', 'none');
                                 innerContainer.addClass("select2-result-sub");
                                 populate(result.children, innerContainer, depth+1);
                                 node.append(innerContainer);
@@ -1795,6 +1809,24 @@ the specific language governing permissions and limitations under the Apache Lic
             var width = resolveContainerWidth.call(this);
             if (width !== null) {
                 this.container.css("width", width);
+            }
+        },
+
+        changeNodeCollapsedState: function(event) {
+            var $expander = $(event.target).closest('.select2-expander');
+            var $el = $(event.target).closest('.select2-result-selectable');
+            if ($expander.length > 0 && $el.length > 0) {
+                if ($expander.hasClass('expander-close')) {
+                    $expander.addClass('expander-open');
+                    $expander.removeClass('expander-close');
+
+                    $el.find("ul").first().show();
+                } else if ($expander.hasClass('expander-open')){
+                    $expander.addClass('expander-close');
+                    $expander.removeClass('expander-open');
+
+                    $el.find("ul").first().hide();
+                }
             }
         }
     });
