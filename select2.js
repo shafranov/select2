@@ -743,7 +743,9 @@ the specific language governing permissions and limitations under the Apache Lic
             search.on("blur", function () { search.removeClass("select2-focused");});
 
             this.dropdown.on("mouseup", resultsSelector, this.bind(function (e) {
-                if ($(e.target).closest(".select2-result-selectable").length > 0) {
+                if ($(e.target).closest(".select2-expander").length > 0) {
+                    this.changeNodeCollapsedState(e);
+                } else if ($(e.target).closest(".select2-result-label").length > 0) {
                     this.highlightUnderEvent(e);
                     this.selectHighlighted(e);
                 }
@@ -851,12 +853,15 @@ the specific language governing permissions and limitations under the Apache Lic
             }
 
             opts = $.extend({}, {
+                expandedNodeIDs: [],
                 populateResults: function(container, results, query) {
                     var populate, id=this.opts.id;
+                    var search = query.term && query.term.length > 0;
 
                     populate=function(results, container, depth) {
 
-                        var i, l, result, selectable, disabled, compound, node, label, innerContainer, formatted;
+                        var i, l, result, selectable, disabled, compound, formatted, expanded;
+                        var node, nodeLine, expanderContainer, expander, label, innerContainer;
 
                         results = opts.sortResults(results, container, query);
 
@@ -867,7 +872,8 @@ the specific language governing permissions and limitations under the Apache Lic
                             disabled = (result.disabled === true);
                             selectable = (!disabled) && (id(result) !== undefined);
 
-                            compound=result.children && result.children.length > 0;
+                            compound = result.children && result.children.length > 0;
+                            expanded = compound && (search || $.inArray(id(result), opts.expandedNodeIDs) >= 0);
 
                             node=$("<li></li>");
                             node.addClass("select2-results-dept-"+depth);
@@ -877,7 +883,21 @@ the specific language governing permissions and limitations under the Apache Lic
                             if (compound) { node.addClass("select2-result-with-children"); }
                             node.addClass(self.opts.formatResultCssClass(result));
 
-                            label=$(document.createElement("div"));
+                            nodeLine = $(document.createElement("div"));
+                            node.append(nodeLine);
+                            nodeLine.addClass("select2-node-line");
+
+                            expanderContainer = $(document.createElement("div"));
+                            nodeLine.append(expanderContainer);
+                            expanderContainer.addClass("select2-expander");
+                            expanderContainer.addClass(
+                                compound ? ( expanded ? "expander-open" : "expander-close" ) : "expander-none");
+
+                            expander = $(document.createElement("div"));
+                            expanderContainer.append(expander);
+
+                            label = $(document.createElement("div"));
+                            nodeLine.append(label);
                             label.addClass("select2-result-label");
 
                             formatted=opts.formatResult(result, label, query, self.opts.escapeMarkup);
@@ -885,12 +905,12 @@ the specific language governing permissions and limitations under the Apache Lic
                                 label.html(formatted);
                             }
 
-                            node.append(label);
-
                             if (compound) {
-
-                                innerContainer=$("<ul></ul>");
+                                innerContainer=$('<ul></ul>');
                                 innerContainer.addClass("select2-result-sub");
+                                if (!expanded) {
+                                    innerContainer.css('display', 'none');
+                                }
                                 populate(result.children, innerContainer, depth+1);
                                 node.append(innerContainer);
                             }
@@ -1795,6 +1815,36 @@ the specific language governing permissions and limitations under the Apache Lic
             var width = resolveContainerWidth.call(this);
             if (width !== null) {
                 this.container.css("width", width);
+            }
+        },
+
+        changeNodeCollapsedState: function(event) {
+            var $expander = $(event.target).closest('.select2-expander');
+            var $el = $(event.target).closest('.select2-result-selectable');
+            var choice = $el.data("select2-data");
+
+            if ($expander.length > 0 && $el.length > 0) {
+                if ($expander.hasClass('expander-close')) {
+                    $expander.addClass('expander-open');
+                    $expander.removeClass('expander-close');
+
+                    $el.find("ul").first().show();
+
+                    // add node ID to array of expanded node IDs
+                    if ($.inArray(choice.id, this.opts.expandedNodeIDs) < 0) {
+                        this.opts.expandedNodeIDs.push(choice.id);
+                    }
+                } else if ($expander.hasClass('expander-open')){
+                    $expander.addClass('expander-close');
+                    $expander.removeClass('expander-open');
+
+                    $el.find("ul").first().hide();
+
+                    // remove node ID from array of expanded node IDs
+                    if ($.inArray(choice.id, this.opts.expandedNodeIDs) >= 0) {
+                        this.opts.expandedNodeIDs.splice($.inArray(choice.id, this.opts.expandedNodeIDs), 1);
+                    }
+                }
             }
         }
     });
@@ -2912,10 +2962,18 @@ the specific language governing permissions and limitations under the Apache Lic
             });
 
             compound.each2(function(i, choice) {
-                // hide an optgroup if it doesnt have any selectable children
-                if (!choice.is('.select2-result-selectable')
-                    && choice.find(".select2-result-selectable:not(.select2-selected)").length === 0) {
-                    choice.addClass("select2-selected");
+                var noSelectableChildren = choice.find(".select2-result-selectable:not(.select2-selected)").length === 0;
+                if (noSelectableChildren) {
+                    // hide an optgroup if it doesnt have any selectable children
+                    if (!choice.is('.select2-result-selectable')) {
+                        choice.addClass("select2-selected");
+                    }
+                    // hide expander if choice doesn't have any selectable children
+                    if (choice.find(".select2-expander").length > 0) {
+                        choice.find(".select2-expander")
+                            .removeClass("expander-open expander-close")
+                            .addClass("expander-none");
+                    }
                 }
             });
 

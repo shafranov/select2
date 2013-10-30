@@ -301,8 +301,8 @@ Version: @@ver@@ Timestamp: @@timestamp@@
 /* results */
 .select2-results {
     max-height: 200px;
-    padding: 0 0 0 4px;
-    margin: 4px 4px 4px 0;
+    padding: 0;
+    margin: 0;
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
@@ -314,13 +314,13 @@ Version: @@ver@@ Timestamp: @@timestamp@@
     padding-left: 0;
 }
 
-.select2-results ul.select2-result-sub > li .select2-result-label { padding-left: 20px }
-.select2-results ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 40px }
-.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 60px }
-.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 80px }
-.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 100px }
-.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 110px }
-.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label { padding-left: 120px }
+.select2-results ul.select2-result-sub > li .select2-node-line { padding-left: 20px }
+.select2-results ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 40px }
+.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 60px }
+.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 80px }
+.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 100px }
+.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 110px }
+.select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-node-line { padding-left: 120px }
 
 .select2-results li {
     list-style: none;
@@ -328,12 +328,12 @@ Version: @@ver@@ Timestamp: @@timestamp@@
     background-image: none;
 }
 
-.select2-results li.select2-result-with-children > .select2-result-label {
+.select2-results li.select2-result-with-children > .select2-node-line {
     font-weight: bold;
 }
 
-.select2-results .select2-result-label {
-    padding: 3px 7px 4px;
+.select2-results .select2-node-line {
+    padding: 3px 2px 4px;
     margin: 0;
     cursor: pointer;
 
@@ -346,7 +346,42 @@ Version: @@ver@@ Timestamp: @@timestamp@@
               user-select: none;
 }
 
-.select2-results .select2-highlighted {
+.select2-results .select2-node-line .select2-expander, 
+.select2-results .select2-node-line .select2-result-label {
+    display: table-cell;
+}
+
+.select2-results .select2-node-line .select2-result-label {
+    width: 100%;
+    padding-left: 3px;
+}
+
+.select2-results .select2-node-line .select2-expander div {
+    width: 16px;
+    height: 16px;           
+    vertical-align: top;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url("icons.gif");
+    background-position: 0 0;
+}
+
+.select2-results .select2-node-line .select2-expander.expander-none div {
+    background-image: none;
+    cursor: default;
+}
+
+.select2-results .select2-node-line .select2-expander.expander-close div {
+    background-position: 0px -80px;
+    cursor: pointer;
+}
+
+.select2-results .select2-node-line .select2-expander.expander-open div {
+    background-position: -32px -80px;
+    cursor: pointer;
+}
+
+.select2-results .select2-highlighted > .select2-node-line > .select2-result-label {
     background: #3875d7;
     color: #fff;
 }
