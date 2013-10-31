@@ -853,13 +853,14 @@ the specific language governing permissions and limitations under the Apache Lic
             }
 
             opts = $.extend({}, {
+                expandedNodeIDs: [],
                 populateResults: function(container, results, query) {
                     var populate, id=this.opts.id;
                     var search = query.term && query.term.length > 0;
 
                     populate=function(results, container, depth) {
 
-                        var i, l, result, selectable, disabled, compound, formatted;
+                        var i, l, result, selectable, disabled, compound, formatted, expanded;
                         var node, nodeLine, expanderContainer, expander, label, innerContainer;
 
                         results = opts.sortResults(results, container, query);
@@ -871,7 +872,8 @@ the specific language governing permissions and limitations under the Apache Lic
                             disabled = (result.disabled === true);
                             selectable = (!disabled) && (id(result) !== undefined);
 
-                            compound=result.children && result.children.length > 0;
+                            compound = result.children && result.children.length > 0;
+                            expanded = compound && (search || $.inArray(id(result), opts.expandedNodeIDs) >= 0);
 
                             node=$("<li></li>");
                             node.addClass("select2-results-dept-"+depth);
@@ -889,7 +891,7 @@ the specific language governing permissions and limitations under the Apache Lic
                             nodeLine.append(expanderContainer);
                             expanderContainer.addClass("select2-expander");
                             expanderContainer.addClass(
-                                compound ? ( search ? "expander-open" : "expander-close" ) : "expander-none");
+                                compound ? ( expanded ? "expander-open" : "expander-close" ) : "expander-none");
 
                             expander = $(document.createElement("div"));
                             expanderContainer.append(expander);
@@ -906,7 +908,7 @@ the specific language governing permissions and limitations under the Apache Lic
                             if (compound) {
                                 innerContainer=$('<ul></ul>');
                                 innerContainer.addClass("select2-result-sub");
-                                if (!search) {
+                                if (!expanded) {
                                     innerContainer.css('display', 'none');
                                 }
                                 populate(result.children, innerContainer, depth+1);
@@ -1819,17 +1821,29 @@ the specific language governing permissions and limitations under the Apache Lic
         changeNodeCollapsedState: function(event) {
             var $expander = $(event.target).closest('.select2-expander');
             var $el = $(event.target).closest('.select2-result-selectable');
+            var choice = $el.data("select2-data");
+
             if ($expander.length > 0 && $el.length > 0) {
                 if ($expander.hasClass('expander-close')) {
                     $expander.addClass('expander-open');
                     $expander.removeClass('expander-close');
 
                     $el.find("ul").first().show();
+
+                    // add node ID to array of expanded node IDs
+                    if ($.inArray(choice.id, this.opts.expandedNodeIDs) < 0) {
+                        this.opts.expandedNodeIDs.push(choice.id);
+                    }
                 } else if ($expander.hasClass('expander-open')){
                     $expander.addClass('expander-close');
                     $expander.removeClass('expander-open');
 
                     $el.find("ul").first().hide();
+
+                    // remove node ID from array of expanded node IDs
+                    if ($.inArray(choice.id, this.opts.expandedNodeIDs) >= 0) {
+                        this.opts.expandedNodeIDs.splice($.inArray(choice.id, this.opts.expandedNodeIDs), 1);
+                    }
                 }
             }
         }
