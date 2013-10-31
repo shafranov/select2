@@ -2944,10 +2944,18 @@ the specific language governing permissions and limitations under the Apache Lic
             });
 
             compound.each2(function(i, choice) {
-                // hide an optgroup if it doesnt have any selectable children
-                if (!choice.is('.select2-result-selectable')
-                    && choice.find(".select2-result-selectable:not(.select2-selected)").length === 0) {
-                    choice.addClass("select2-selected");
+                var noSelectableChildren = choice.find(".select2-result-selectable:not(.select2-selected)").length === 0;
+                if (noSelectableChildren) {
+                    // hide an optgroup if it doesnt have any selectable children
+                    if (!choice.is('.select2-result-selectable')) {
+                        choice.addClass("select2-selected");
+                    }
+                    // hide expander if choice doesn't have any selectable children
+                    if (choice.find(".select2-expander").length > 0) {
+                        choice.find(".select2-expander")
+                            .removeClass("expander-open expander-close")
+                            .addClass("expander-none");
+                    }
                 }
             });
 
