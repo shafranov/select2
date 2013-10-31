@@ -855,6 +855,7 @@ the specific language governing permissions and limitations under the Apache Lic
             opts = $.extend({}, {
                 populateResults: function(container, results, query) {
                     var populate, id=this.opts.id;
+                    var search = query.term && query.term.length > 0;
 
                     populate=function(results, container, depth) {
 
@@ -887,7 +888,8 @@ the specific language governing permissions and limitations under the Apache Lic
                             expanderContainer = $(document.createElement("div"));
                             nodeLine.append(expanderContainer);
                             expanderContainer.addClass("select2-expander");
-                            expanderContainer.addClass(compound ? "expander-close" : "expander-none");
+                            expanderContainer.addClass(
+                                compound ? ( search ? "expander-open" : "expander-close" ) : "expander-none");
 
                             expander = $(document.createElement("div"));
                             expanderContainer.append(expander);
@@ -903,8 +905,10 @@ the specific language governing permissions and limitations under the Apache Lic
 
                             if (compound) {
                                 innerContainer=$('<ul></ul>');
-                                innerContainer.css('display', 'none');
                                 innerContainer.addClass("select2-result-sub");
+                                if (!search) {
+                                    innerContainer.css('display', 'none');
+                                }
                                 populate(result.children, innerContainer, depth+1);
                                 node.append(innerContainer);
                             }
